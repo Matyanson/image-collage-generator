@@ -72,13 +72,13 @@ export async function drawGrid(ctx: CanvasRenderingContext2D, grid, x, y, width,
     if(grid.horizontal == true) {
         for(let item of grid.items) {
             let itemWidth = (item.ratio / grid.ratio) * width;
-            drawGrid(ctx, item, x + offset, y, itemWidth, height, margin);
+            await drawGrid(ctx, item, x + offset, y, itemWidth, height, margin);
             offset += itemWidth;
         }
     } else {
         for(let item of grid.items) {
             let itemHeight = (grid.ratio / item.ratio) * height;
-            drawGrid(ctx, item, x, y + offset, width, itemHeight, margin);
+            await drawGrid(ctx, item, x, y + offset, width, itemHeight, margin);
             offset += itemHeight;
         }
     }
