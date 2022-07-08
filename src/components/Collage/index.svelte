@@ -14,16 +14,20 @@ import { drawGridFit } from "./helper";
     let height = 720;
     let margin = 5;
     let border = 10;
+    let bg = "#F5DEB3";
 
     let dimensions: [number, number] = [width, height];
 
     async function drawCollage() {
         canvas.width = width;
         canvas.height = height;
+        ctx.fillStyle = bg;
         ctx.clearRect(0, 0, width, height);
+        ctx.fillRect(0, 0, width, height);
         const grid = await test(width / height);
         
-        dimensions = drawGridFit(ctx, grid, border, border, width - (border * 2), height - (border * 2), margin);
+        const [w, h] = drawGridFit(ctx, grid, border, border, width - (border * 2), height - (border * 2), margin);
+        dimensions = [w + border*2, h + border*2];
     }
 
     async function snapshot1() {
@@ -62,6 +66,7 @@ import { drawGridFit } from "./helper";
         height: <input type="number" bind:value={height} />
         margin: <input type="number" bind:value={margin} />
         border: <input type="number" bind:value={border} />
+        background: <input type="color" bind:value={bg} />
         <button on:click={drawCollage}>generate</button>
     </div>
     <div class="display">
