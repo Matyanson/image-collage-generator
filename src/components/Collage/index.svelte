@@ -9,6 +9,7 @@ import { drawGridFit } from "./helper";
     onMount(() => {
         ctx = canvas.getContext("2d");
         ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
     });
     let width = 1280;//1201.6332651194605
     let height = 720;

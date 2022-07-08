@@ -13,7 +13,6 @@ function createImagesCollection() {
     return {
         subscribe,
         push: (...items: ImgData[]) => {
-            console.log('push', items[0].url);
             update(old => [...old, ...items]);
         },
         delete: (...indexes: number[]) => {
