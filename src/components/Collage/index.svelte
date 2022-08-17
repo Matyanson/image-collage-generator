@@ -11,6 +11,7 @@ import { drawGridFit } from "./helper";
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
     });
+    // 3840×2160 - 4K UHD
     let width = 1280;//1201.6332651194605
     let height = 720;
     let margin = 5;
@@ -62,7 +63,7 @@ import { drawGridFit } from "./helper";
 
 
 <div class="collagesContainer">
-    <div class="settings">
+    <div class="settings">1280x720, 1920×1080, 2560×1440, 3200×1800, 3840×2160<br>
         width: <input type="number" bind:value={width} />
         height: <input type="number" bind:value={height} />
         margin: <input type="number" bind:value={margin} />

@@ -1,6 +1,4 @@
 <script lang="ts">
-import { xlink_attr } from "svelte/internal";
-
     import { images } from "../../store";
 	import Item from "./Item.svelte";
 

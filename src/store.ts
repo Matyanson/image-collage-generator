@@ -2,12 +2,12 @@ import type { ImgData } from "./models/ImgData";
 import { wIDatabase, wStorage } from "./writable-stores";
 import * as idb from "idb-keyval";
 import { get } from "svelte/store";
+import { getImageUrl } from "./helper";
 
 
 export const images = createImagesCollection();
 
 function createImagesCollection() {
-    //const { subscribe, update, set } = wIDatabase<ImgData[]>('chosen-images', []);
     const { subscribe, update, set } = wIDatabase<ImgData[]>('chosen-images', []);
 
     return {
@@ -30,8 +30,10 @@ function createImagesCollection() {
         },
         getLink: async (index: number): Promise<string> => {
             const item = get(images)[index];
-            if(item.FullResKey)
-                return await idb.get(item.FullResKey);
+            if(item.FullResKey){
+                const file = await idb.get<File>(item.FullResKey);
+                return await getImageUrl(file);
+            }
             return item.url;
         }
     }

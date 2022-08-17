@@ -2,6 +2,7 @@
 import { images } from "../store";
 import * as idb from "idb-keyval";
 import type { ImgData } from "../models/ImgData";
+import { getImageUrl } from "../helper";
 
 
     const onUpload = async (e: Event) => {
@@ -9,30 +10,24 @@ import type { ImgData } from "../models/ImgData";
         const { files } = target;
 
         for(const file of files) {
-            saveImageURL(file);
+            saveImage(file);
         }
     }
 
-    function saveImageURL(file: File) {
-        const reader = new FileReader();
-
-        reader.readAsDataURL(file);
-
-        reader.onload = async () => {
-            if(typeof(reader.result) == "string"){
-                const url = reader.result;
-                let newImg: ImgData = { name: file.name, url };
-                const maxArea = 300 * 300;
-                const limit = 150000; //150kB
-                if(file.size > limit) {
-                    console.log(file.size);
-                    newImg.url = await resizeImg(url, maxArea);
-                    newImg.FullResKey = saveLargeImage(url);
-                }
-
-                images.push(newImg);
-            }
+    async function saveImage(file: File) {
+        let newImg: ImgData = { name: file.name, url: null };
+        const maxArea = 300 * 300;
+        const limit = 150000; //150kB
+        const url = await getImageUrl(file);
+        if(file.size > limit) {
+            console.log(file.size);
+            newImg.url = await resizeImg(url, maxArea);
+            newImg.FullResKey = saveLargeImage(file);
+        } else {
+            newImg.url = url;
         }
+
+        images.push(newImg);
     }
 
     async function resizeImg(url: string, targetArea: number): Promise<string> {
@@ -60,9 +55,9 @@ import type { ImgData } from "../models/ImgData";
         })
     }
 
-    function saveLargeImage(url: string): string {
+    function saveLargeImage(file: File): string {
         const key = Date.now().toString();
-        idb.set(key, url);
+        idb.set(key, file);
         return key;
     }
 </script>
