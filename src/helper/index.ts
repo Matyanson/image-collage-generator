@@ -1,4 +1,4 @@
-export function getImageUrl(file: File): Promise<string> {
+export function getImageUrl(file: File | Blob): Promise<string> {
     return new Promise((res) => {
         const reader = new FileReader();
 

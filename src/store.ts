@@ -31,7 +31,7 @@ function createImagesCollection() {
         getLink: async (index: number): Promise<string> => {
             const item = get(images)[index];
             if(item.FullResKey){
-                const file = await idb.get<File>(item.FullResKey);
+                const file = await idb.get<File|Blob>(item.FullResKey);
                 return await getImageUrl(file);
             }
             return item.url;
