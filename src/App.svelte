@@ -1,6 +1,6 @@
 <script lang="ts">
 import Gallery from "./components/Gallery/index.svelte";
-import ImgUploader from "./components/ImgUploader.svelte";
+import ImgUploader from "./components/ImgUploader/index.svelte";
 import RedditUploader from "./components/RedditUploader/index.svelte";
 import Collage from "./components/Collage/index.svelte";
 

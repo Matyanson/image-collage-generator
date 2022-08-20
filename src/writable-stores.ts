@@ -1,4 +1,4 @@
-import { writable, Writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 import * as idb from "idb-keyval";
 const { get, set } = idb;
 
