@@ -20,6 +20,7 @@
     "vite": "^3.0.7"
   },
   "dependencies": {
+    "@types/offscreencanvas": "^2019.7.0",
     "idb-keyval": "^6.2.0"
   }
 }

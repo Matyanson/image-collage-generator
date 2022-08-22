@@ -3,14 +3,19 @@ import type { ImgData } from "../../models/ImgData";
 import type { WorkerMessage } from "../../models/WorkerMessage";
 import type ProcessedImg from "./ProcessedImg";
 
-self.addEventListener('message', e => {
+self.addEventListener('message', async (e) => {
     const mess: WorkerMessage = e.data;
-    self.postMessage({ type: 'hello', data: 'hello world' });
-    console.log(mess);
     switch(mess.type){
         case 'process':
-            const img = processImg(mess.data)
+            const img = await processImg(mess.data)
             self.postMessage({ type: 'process', data: img });
+            break;
+        case 'process_batch':
+            const batch: File[] = mess.data;
+            for(let file of batch){
+                const img = await processImg(file);
+                self.postMessage({ type: 'process', data: img });
+            }
             break;
         default:
             console.log("undefined command");
@@ -30,24 +35,23 @@ async function processImg(file: File): Promise<ProcessedImg> {
     if(file.size > limit2) {
         console.log('1');
         //convert to jpeg
-        let file2 = await imgToJPEG(url);
-        console.log('jpeg',file2.size);
+        const img = await getImageFromBlob(file);
+        let file2 = await imgToJPEG(img);
         if(file2.size > limit2) {
             console.log('1.1');
             //downscale image (power of 2)
             const scale = 1 / 2**Math.ceil(Math.log2(file2.size / limit2));
 
-            const img = await getImageFromUrl(url);
             let canvas = await resizeImg(img, scale);
             file2 = await canvasToBlob(canvas, 'image/jpeg');
-            console.log('jpeg+scaled', file2.size);
         }
-        res.thumbnail = await resizeImgArea(url, maxArea);
+        res.thumbnail = await resizeImgArea(img, maxArea);
         res.largeSize = file2;
     }
     else if(file.size > limit) {
         console.log('2');
-        res.thumbnail = await resizeImgArea(url, maxArea);
+        const img = await getImageFromBlob(file);
+        res.thumbnail = await resizeImgArea(img, maxArea);
         res.largeSize = file;
     } else {
         console.log('3');
@@ -57,54 +61,42 @@ async function processImg(file: File): Promise<ProcessedImg> {
     return res;
 }
 
-async function imgToJPEG(url: string): Promise<Blob> {
-    return new Promise(async (res) => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+async function imgToJPEG(img: ImageBitmap): Promise<Blob> {
+    const canvas = new OffscreenCanvas(img.width, img.height);
+    const ctx = canvas.getContext('2d');
 
-        const img = await getImageFromUrl(url);
-        canvas.width = img.width;
-        canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
 
-        ctx.drawImage(img, 0, 0);
-
-        canvas.toBlob((blob) => res(blob), 'image/jpeg');
-    });
+    const newBlob = await canvas.convertToBlob({ type: 'image/jpeg' });
+    return newBlob;
 }
 
-async function canvasToBlob(canvas: HTMLCanvasElement, type: string = 'image/jpeg'): Promise<Blob> {
-    return new Promise(async (res) => {
-        canvas.toBlob((blob) => res(blob), type);
-    });
+async function canvasToBlob(canvas: OffscreenCanvas, type: string = 'image/jpeg'): Promise<Blob> {
+    return await canvas.convertToBlob({ type });
 }
 
-async function resizeImgArea(url: string, targetArea: number): Promise<string> {
+async function resizeImgArea(img: ImageBitmap, targetArea: number): Promise<string> {
  
-    const img = await getImageFromUrl(url);
     const area = img.width * img.height;
     const scale = Math.sqrt(targetArea / area);
 
     let canvas = await resizeImg(img, scale);
-    return canvas.toDataURL();
+    const blob = await canvas.convertToBlob();
+    return await getImageUrl(blob);
 }
-async function resizeImg(img: HTMLImageElement, scale: number): Promise<HTMLCanvasElement> {
-
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+async function resizeImg(img: ImageBitmap, scale: number): Promise<OffscreenCanvas> {
 
     const width = Math.round(img.width * scale);
     const height = Math.round(img.height * scale);
-    canvas.width = width;
-    canvas.height = height;
+
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    
     ctx.drawImage(img, 0, 0, width, height);
 
     return canvas;
 }
 
-function getImageFromUrl(url: string): Promise<HTMLImageElement> {
-    return new Promise( resolve => {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => resolve(img);
-    })
+async function getImageFromBlob(blob: Blob): Promise<ImageBitmap> {
+    return await createImageBitmap(blob);
 }
