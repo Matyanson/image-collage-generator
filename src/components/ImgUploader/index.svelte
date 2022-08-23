@@ -5,7 +5,7 @@ import type { ImgData } from "../../models/ImgData";
 import { getImageUrl } from "../../helper";
 import type { WorkerMessage } from "../../models/WorkerMessage";
 import type ProcessedImg from "./ProcessedImg";
-import myWorker from "./worker?worker";
+import myWorker from "./worker?worker&inline";
 
     let w: Worker;
 
@@ -41,6 +41,7 @@ import myWorker from "./worker?worker";
         if(typeof(Worker) == "undefined" || w) return;
 
         //w = new Worker(new URL('./worker.js', import.meta.url));
+        //w = new Worker(URL.createObjectURL(new Blob(["("+myWorker.toString()+")()"], {type: 'text/javascript'})));
         w = new myWorker();
         w.onmessage = onMessage;
     }

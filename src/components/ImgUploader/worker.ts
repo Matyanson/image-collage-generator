@@ -1,5 +1,4 @@
 import { getImageUrl } from "../../helper";
-import type { ImgData } from "../../models/ImgData";
 import type { WorkerMessage } from "../../models/WorkerMessage";
 import type ProcessedImg from "./ProcessedImg";
 
@@ -76,7 +75,7 @@ async function canvasToBlob(canvas: OffscreenCanvas, type: string = 'image/jpeg'
 }
 
 async function resizeImgArea(img: ImageBitmap, targetArea: number): Promise<string> {
- 
+
     const area = img.width * img.height;
     const scale = Math.sqrt(targetArea / area);
 
@@ -100,3 +99,5 @@ async function resizeImg(img: ImageBitmap, scale: number): Promise<OffscreenCanv
 async function getImageFromBlob(blob: Blob): Promise<ImageBitmap> {
     return await createImageBitmap(blob);
 }
+
+//const workerUrl = URL.createObjectURL(new Blob(["("+workerFunction.toString()+")()"], {type: 'text/javascript'}));
