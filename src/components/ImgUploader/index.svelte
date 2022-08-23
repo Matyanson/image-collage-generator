@@ -72,3 +72,4 @@ import myWorker from "./worker?worker";
 </script>
 
 <input type="file" multiple accept="image/*" on:change={onUpload}/>
+<button on:click={resetWorker}>stop upload</button>

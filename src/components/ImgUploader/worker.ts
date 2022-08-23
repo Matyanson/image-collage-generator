@@ -12,7 +12,7 @@ self.addEventListener('message', async (e) => {
             break;
         case 'process_batch':
             const batch: File[] = mess.data;
-            for(let file of batch){
+            for await(let file of batch){
                 const img = await processImg(file);
                 self.postMessage({ type: 'process', data: img });
             }

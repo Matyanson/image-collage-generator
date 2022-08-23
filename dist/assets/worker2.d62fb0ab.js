@@ -1,1 +1,0 @@
-(function(){"use strict";self.addEventListener("message",s=>{const e=s.data;switch(self.postMessage({type:"hello",data:"hello world"}),console.log(e),e.type){case"hello":self.postMessage({type:"hello",data:"hello from worker!"});break;default:self.postMessage({type:"error",data:"unknown command!"}),console.log("undefined command");break}})})();
