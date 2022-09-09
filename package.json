@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@types/offscreencanvas": "^2019.7.0",
-    "idb-keyval": "^6.2.0"
+    "idb-keyval": "^6.2.0",
+    "jimp": "^0.16.1"
   }
 }

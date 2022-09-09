@@ -12,8 +12,8 @@ import { drawGridFit } from "./helper";
         ctx.imageSmoothingQuality = "high";
     });
     // 3840×2160 - 4K UHD
-    let width = 1280;//1201.6332651194605
-    let height = 720;
+    let width = 1920;//1201.6332651194605
+    let height = 1080;
     let margin = 5;
     let border = 10;
     let bg = "#F5DEB3";
