@@ -34,20 +34,48 @@ export async function imgToGrid(index, url): Promise<Grid> {
   }
 }
 
-export async function drawImgFill(ctx: CanvasRenderingContext2D, url, x, y, width, height) {
-    const jImg = await Jimp.read(url);
-    const resized = await jImg.cover(width, height, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE, Jimp.RESIZE_BICUBIC);
-    const newUrl = await resized.getBase64Async(resized.getMIME());
-    const img = await getImgFromUrl(newUrl);
-    ctx.drawImage(img, x, y);
-    // const img = await getImgFromUrl(url);
-    // const imgRatio = img.width / img.height;
-    // const boxRatio = width / height;
-    // let cropWidth = imgRatio > boxRatio ? (boxRatio / imgRatio) * img.width : img.width;
-    // let cropHeight = imgRatio > boxRatio ? img.height : (imgRatio / boxRatio) * img.height;
-    // let centerX = (img.width - cropWidth) / 2;
-    // let centerY = (img.height - cropHeight) / 2;
-    // ctx.drawImage(img, centerX, centerY, cropWidth, cropHeight, x, y, width, height);
+async function drawImgFillJimp(ctx: CanvasRenderingContext2D, img: Jimp, x, y, width, height) {
+    const mimeType = img.getMIME();
+    
+    const resized = await img.cover(width, height, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE, Jimp.RESIZE_BICUBIC);
+    // sharpen the image
+    const amount = 0.5;
+    const a = (0 - 1/5) * amount;
+    const b = 1 + (1 - 1/5) * amount;
+    const unsharpen = await resized.convolute([[0,a,0], [a,b,a], [0,a,0]]);
+    // draw
+    const buffer = await resized.getBufferAsync(mimeType);
+    const bitmap = await createImageBitmap(new Blob([buffer]/*, {type: mimeType}*/))
+    ctx.drawImage(bitmap, x, y);
+}
+
+export async function drawImg(ctx: CanvasRenderingContext2D, src: string | Blob, x, y, width, height) {
+    try {
+        let img: Jimp;
+        if(typeof src == "string")
+            img = await Jimp.read(src);
+        else {
+            const buffer = Buffer.from(await src.arrayBuffer());
+            img = await Jimp.read(buffer);
+        }
+        drawImgFillJimp(ctx, img, x, y, width, height);
+    } catch(e) {
+        let img: ImageBitmap | HTMLImageElement;
+        if(typeof src == "string") img = await getImgFromUrl(src);
+        else img = await createImageBitmap(src);
+
+        drawImgFill(ctx, img, x, y, width, height);
+    }
+}
+
+export async function drawImgFill(ctx: CanvasRenderingContext2D, img: ImageBitmap | HTMLImageElement, x, y, width, height) {
+    const imgRatio = img.width / img.height;
+    const boxRatio = width / height;
+    let cropWidth = imgRatio > boxRatio ? (boxRatio / imgRatio) * img.width : img.width;
+    let cropHeight = imgRatio > boxRatio ? img.height : (imgRatio / boxRatio) * img.height;
+    let centerX = (img.width - cropWidth) / 2;
+    let centerY = (img.height - cropHeight) / 2;
+    ctx.drawImage(img, centerX, centerY, cropWidth, cropHeight, x, y, width, height);
 }
 
 export function fitDimsToRatio(width, height, actualRatio): [number, number] {
@@ -69,8 +97,8 @@ export async function drawGrid(ctx: CanvasRenderingContext2D, grid, x, y, width,
     if(grid.horizontal == undefined || typeof grid.items[0] == "number" ) {
         let index = grid.items[0];
         if(index < 0) return;
-        const link = await images.getLink(index);
-        drawImgFill(ctx, link, x, y, width - margin, height - margin);
+        const src = await images.getSrc(index);
+        drawImg(ctx, src, x, y, width - margin, height - margin);
         return;
     }
 

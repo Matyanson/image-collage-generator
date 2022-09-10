@@ -28,11 +28,11 @@ function createImagesCollection() {
         get: () => {
             return get(images);
         },
-        getLink: async (index: number): Promise<string> => {
+        getSrc: async (index: number): Promise<string|Blob> => {
             const item = get(images)[index];
             if(item.FullResKey){
-                const file = await idb.get<File|Blob>(item.FullResKey);
-                return await getImageUrl(file);
+                const file = await idb.get<Blob>(item.FullResKey);
+                return file;
             }
             return item.url;
         }
