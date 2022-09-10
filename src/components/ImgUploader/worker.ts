@@ -31,13 +31,16 @@ async function processImg(file: File): Promise<ProcessedImg> {
     
     console.log(file.size);
     if(file.size > limit2) {
-        console.log('1');
+        console.log('1', 'updated');
         const img = await getImageFromBlob(file);
         //downscale image (power of 2)
-        const scale = Math.sqrt(limit2 / file.size);
-        const scale2 = 2**-Math.ceil(-Math.log2(scale));
+        const scale = Math.sqrt(file.size / limit2);
+        const scale2 = 2**Math.ceil(Math.log2(scale));
 
-        let canvas = await resizeImg(img, scale2);
+        const cropWidth = img.width - (img.width % scale2);
+        const cropHeight = img.height - (img.height % scale2);
+
+        let canvas = await resizeImg(img, cropWidth, cropHeight, img.width / scale2, img.height / scale2);
         let file2 = await canvasToBlob(canvas, 'image/jpeg');
 
         res.thumbnail = await resizeImgArea(img, maxArea);
@@ -75,11 +78,11 @@ async function resizeImgArea(img: ImageBitmap, targetArea: number): Promise<stri
     const area = img.width * img.height;
     const scale = Math.sqrt(targetArea / area);
 
-    let canvas = await resizeImg(img, scale);
+    let canvas = await scaleImg(img, scale);
     const blob = await canvas.convertToBlob();
     return await getImageUrl(blob);
 }
-async function resizeImg(img: ImageBitmap, scale: number): Promise<OffscreenCanvas> {
+async function scaleImg(img: ImageBitmap | OffscreenCanvas, scale: number): Promise<OffscreenCanvas> {
 
     const width = Math.round(img.width * scale);
     const height = Math.round(img.height * scale);
@@ -88,6 +91,18 @@ async function resizeImg(img: ImageBitmap, scale: number): Promise<OffscreenCanv
     const ctx = canvas.getContext('2d');
     
     ctx.drawImage(img, 0, 0, width, height);
+
+    return canvas;
+}
+async function resizeImg(img: ImageBitmap | OffscreenCanvas, sw: number, sh: number, dw: number, dh: number): Promise<OffscreenCanvas> {
+
+    const offsetX = Math.floor((img.width - sw) / 2);
+    const offsetY = Math.floor((img.height - sh) / 2);
+
+    const canvas = new OffscreenCanvas(dw, dh);
+    const ctx = canvas.getContext('2d');
+    
+    ctx.drawImage(img, offsetX, offsetY, sw, sh, 0, 0, dw, dh);
 
     return canvas;
 }
