@@ -26,24 +26,20 @@ async function processImg(file: File): Promise<ProcessedImg> {
     let res: ProcessedImg = { name: file.name, thumbnail: null };
     const maxArea = 300 * 300;
     const limit = 150000; //150kB
-    const limit2 = 5000000; //3MB
-    const url = await getImageUrl(file);
+    const limit2 = 3000000; //3MB
 
     
     console.log(file.size);
     if(file.size > limit2) {
         console.log('1');
-        //convert to jpeg
         const img = await getImageFromBlob(file);
-        let file2 = await imgToJPEG(img);
-        if(file2.size > limit2) {
-            console.log('1.1');
-            //downscale image (power of 2)
-            const scale = 1 / 2**Math.ceil(Math.log2(file2.size / limit2));
+        //downscale image (power of 2)
+        const scale = Math.sqrt(limit2 / file.size);
+        const scale2 = 2**-Math.ceil(-Math.log2(scale));
 
-            let canvas = await resizeImg(img, scale);
-            file2 = await canvasToBlob(canvas, 'image/jpeg');
-        }
+        let canvas = await resizeImg(img, scale2);
+        let file2 = await canvasToBlob(canvas, 'image/jpeg');
+
         res.thumbnail = await resizeImgArea(img, maxArea);
         res.largeSize = file2;
     }
@@ -54,7 +50,7 @@ async function processImg(file: File): Promise<ProcessedImg> {
         res.largeSize = file;
     } else {
         console.log('3');
-        res.thumbnail = url;
+        res.thumbnail = await getImageUrl(file);
     }
 
     return res;
